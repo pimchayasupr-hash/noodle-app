@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>หลังบ้านแม่ค้า - ก๋วยเตี๋ยว</title>
+    <style>
+        body { font-family: sans-serif; background: #e8eaed; padding: 20px; }
+        .header { background: #333; color: #fff; padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .order-card { background: #fff; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 6px solid #c00000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .order-card.done { border-left-color: #2e7d32; opacity: 0.6; }
+        .head-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #ccc; padding-bottom: 10px; margin-bottom: 10px; }
+        .btn-done { background: #c00000; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; width: 100%; }
+        .btn-done.done { background: #2e7d32; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>🧑‍🍳 ออเดอร์ร้านก๋วยเตี๋ยว</h2>
+        <button onclick="loadOrders()" style="padding:8px 12px; border-radius:5px; cursor:pointer;">รีเฟรชออเดอร์ 🔄</button>
+    </div>
+
+    <div id="order-container"></div>
+
+<script>
+function loadOrders() {
+    const cont = document.getElementById('order-container');
+    const orders = JSON.parse(localStorage.getItem('noodle_orders')) || [];
+    
+    if(orders.length === 0) {
+        cont.innerHTML = '<h3 style="text-align:center; color:#666; margin-top:50px;">ยังไม่มีออเดอร์เข้าจ้า</h3>';
+        return;
+    }
+
+    // เรียงคิวใหม่ให้อยู่บนสุด
+    const sorted = orders.reverse();
+
+    cont.innerHTML = sorted.map((o, index) => {
+        const isDone = o.status === 'เสร็จแล้ว';
+        const total = o.items.reduce((s, i) => s + i.price, 0);
+        
+        return `
+        <div class="order-card ${isDone ? 'done' : ''}">
+            <div class="head-row">
+                <h3 style="margin:0;">คิว ${o.id} : คุณ ${o.customer}</h3>
+                <span style="color:#888;">${o.time}</span>
+            </div>
+            ${o.items.map(i => `
+                <div style="font-size:16px; margin-bottom:5px;">
+                    <b>1x ${i.name}</b> (${i.noodle})
+                    ${i.note ? `<span style="color:#c00000;">[โน้ต: ${i.note}]</span>` : ''}
+                </div>
+            `).join('')}
+            <div style="text-align:right; font-weight:bold; margin-top:10px;">ยอดรวม ${total}.-</div>
+            <button class="btn-done ${isDone ? 'done' : ''}" onclick="toggleStatus(${orders.length - 1 - index})">
+                ${isDone ? 'ทำเสร็จแล้ว ✅' : 'กดเมื่อทำเสร็จแล้ว'}
+            </button>
+        </div>`;
+    }).join('');
+}
+
+function toggleStatus(realIndex) {
+    let orders = JSON.parse(localStorage.getItem('noodle_orders'));
+    orders[realIndex].status = orders[realIndex].status === 'รอทำ' ? 'เสร็จแล้ว' : 'รอทำ';
+    localStorage.setItem('noodle_orders', JSON.stringify(orders));
+    loadOrders();
+}
+
+// โหลดครั้งแรก
+loadOrders();
+
+// ระบบให้หน้าจอมันรีเฟรชออเดอร์เองโดยอัตโนมัติ ทุกๆ 3 วินาที
+setInterval(loadOrders, 3000);
+</script>
+</body>
+</html>
