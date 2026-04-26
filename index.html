@@ -24,24 +24,27 @@
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: flex-end; }
         .modal.open { display: flex; }
         .modal-content { background: white; width: 100%; max-width: 480px; padding: 20px; border-radius: 20px 20px 0 0; max-height: 85vh; overflow-y: auto; }
-        .opt-title { font-weight: bold; margin: 15px 0 10px; color: var(--red); }
+        .opt-title { font-weight: bold; margin: 15px 0 10px; color: var(--red); border-bottom: 1px solid #eee; padding-bottom: 5px; }
         .radio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .radio-btn { border: 1px solid #ccc; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; }
+        .radio-btn { border: 1px solid #ccc; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 5px; }
         .radio-btn.active { border-color: var(--red); background: var(--red-light); color: var(--red); font-weight: bold; }
-        .input-note { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; margin-top: 5px; }
-        .btn-confirm { width: 100%; background: var(--red); color: white; padding: 15px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; margin-top: 20px; }
         
-        /* Toast Notification */
+        .extra-price { font-size: 12px; color: #666; font-weight: normal; }
+        .radio-btn.active .extra-price { color: var(--red); }
+
+        .input-note { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; margin-top: 5px; font-family: inherit; }
+        .btn-confirm { width: 100%; background: var(--red); color: white; padding: 15px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+        
+        /* Toast & Floating */
         #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 30px; padding: 16px; position: fixed; z-index: 300; left: 50%; bottom: 30px; font-size: 15px; transform: translateX(-50%); font-weight:bold;}
         #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
         @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
         @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
 
-        /* Floating Cart */
         .floating-cart { position: fixed; bottom: 20px; right: 20px; background: var(--gold); color: #000; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 100; cursor: pointer; }
         .cart-badge { position: absolute; top: -5px; right: -5px; background: var(--red); color: white; font-size: 12px; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-        
-        /* Screens */
+        .floating-status { position: fixed; bottom: 20px; left: 20px; background: #fff; color: var(--red); padding: 15px 20px; border-radius: 30px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 100; cursor: pointer; border: 2px solid var(--red); }
+
         #screen-menu { display: block; }
         #screen-cart { display: none; padding: 20px; }
     </style>
@@ -61,7 +64,7 @@
     <div id="screen-cart">
         <h2 style="color:var(--red); margin-bottom:15px;">ตะกร้าของคุณ</h2>
         <div id="cart-container"></div>
-        <div id="cart-total" style="font-size:18px; font-weight:bold; text-align:right; margin-top:15px;"></div>
+        <div id="cart-total" style="font-size:18px; font-weight:bold; text-align:right; margin-top:15px; color:var(--red);"></div>
         <input type="text" id="cust-name" class="input-note" placeholder="ใส่ชื่อของคุณ (เช่น คุณเอ โต๊ะ 5)" style="margin-top:15px;">
         <button class="btn-confirm" onclick="submitOrder()">ส่งออเดอร์ให้ร้าน</button>
         <button class="btn-confirm" style="background:#888; margin-top:10px;" onclick="toggleCart()">กลับไปเลือกเมนูเพิ่ม</button>
@@ -70,25 +73,54 @@
     <div class="floating-cart" onclick="toggleCart()" id="btn-cart">
         🛒<div class="cart-badge" id="cart-count">0</div>
     </div>
+    <div class="floating-status" onclick="openStatus()" id="btn-status" style="display:none;">
+        🎫 ดูสถานะคิว
+    </div>
 
     <div class="modal" id="item-modal">
         <div class="modal-content" id="modal-body"></div>
     </div>
 
+    <div class="modal" id="status-modal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2 style="color:var(--red);">สถานะออเดอร์ของคุณ</h2>
+                <button onclick="document.getElementById('status-modal').classList.remove('open')" style="border:none; background:none; font-size:24px;">✖</button>
+            </div>
+            <div id="status-container"></div>
+        </div>
+    </div>
+
     <div id="toast">✅ ใส่ตะกร้าเรียบร้อย!</div>
 
 <script>
+// ข้อมูลเมนูหลัก
 const MENUS = [
     {id: 'M1', name: 'ก๋วยเตี๋ยวน้ำใส', img: '🍜', basePrice: 60},
     {id: 'M2', name: 'ก๋วยเตี๋ยวแห้งต้มยำ', img: '🍜', basePrice: 60},
     {id: 'M3', name: 'ก๋วยเตี๋ยวน้ำต้มยำ', img: '🍜', basePrice: 60}
 ];
+
+// ข้อมูลตัวเลือก
 const NOODLES = ['เส้นเล็ก', 'เส้นใหญ่', 'เส้นหมี่ขาว', 'บะหมี่', 'วุ้นเส้น'];
+const BASE_TOPPINGS = ['กากหมู', 'หมูชิ้น', 'หมูสับ', 'ตับต้ม', 'ลูกชิ้นปลา', 'ลูกชิ้นกุ้ง'];
+const EXTRAS = [
+    { id: 'E1', name: 'เกี๊ยวปลา 1 ตัว', price: 10 },
+    { id: 'E2', name: 'ลูกชิ้นปลา 3 ลูก', price: 20 },
+    { id: 'E3', name: 'ลูกชิ้นกุ้ง 3 ลูก', price: 20 },
+    { id: 'E4', name: 'เพิ่มหมู (ชิ้น/สับ)', price: 10 },
+    { id: 'E5', name: 'กากหมู 1 ถุง', price: 25 }
+];
 
 let cart = [];
+let myQueueIds = []; 
 let activeItem = null;
-let selSize = 'ธรรมดา (60.-)';
+
+// State สำหรับ Modal
+let selSize = 'ธรรมดา';
 let selNoodle = 'เส้นเล็ก';
+let selBase = []; // เครื่องพื้นฐานที่เลือก (ตอนแรกจะ Check หมด)
+let selExtra = []; // รหัส Extra ที่เลือกเพิ่ม
 
 function initMenu() {
     const cont = document.getElementById('menu-container');
@@ -106,24 +138,65 @@ function initMenu() {
 
 function openModal(id) {
     activeItem = MENUS.find(m => m.id === id);
-    selSize = 'ธรรมดา (60.-)';
+    selSize = 'ธรรมดา';
     selNoodle = 'เส้นเล็ก';
+    selBase = [...BASE_TOPPINGS]; // ค่าเริ่มต้น: ใส่เครื่องมาตรฐานครบ
+    selExtra = [];
     renderModal();
     document.getElementById('item-modal').classList.add('open');
 }
 
+// ฟังก์ชัน Toggle ตัวเลือกต่างๆ
+function setSize(size) {
+    selSize = size;
+    // ถ้าเลือกพิเศษ และยังไม่มีเกี๊ยวปลาในเครื่อง ให้แอดเข้าไป
+    if (size === 'พิเศษ' && !selBase.includes('เกี๊ยวปลา')) {
+        selBase.push('เกี๊ยวปลา');
+    }
+    // ถ้ากลับมาเป็นธรรมดา ให้เอาเกี๊ยวปลาออกจากเครื่องมาตรฐาน
+    if (size === 'ธรรมดา') {
+        selBase = selBase.filter(item => item !== 'เกี๊ยวปลา');
+    }
+    renderModal();
+}
+
+function toggleBase(item) {
+    if(selBase.includes(item)) selBase = selBase.filter(i => i !== item);
+    else selBase.push(item);
+    renderModal();
+}
+
+function toggleExtra(id) {
+    if(selExtra.includes(id)) selExtra = selExtra.filter(i => i !== id);
+    else selExtra.push(id);
+    renderModal();
+}
+
 function renderModal() {
+    // คำนวณราคารวม
+    let basePrice = selSize === 'พิเศษ' ? 70 : 60;
+    let extraTotal = selExtra.reduce((sum, id) => {
+        const ex = EXTRAS.find(e => e.id === id);
+        return sum + (ex ? ex.price : 0);
+    }, 0);
+    let totalPrice = basePrice + extraTotal;
+
+    // เตรียมรายการเครื่องมาตรฐานที่จะแสดง (ถ้าพิเศษ ให้เพิ่มเกี๊ยวปลาเข้าไปให้เลือกปิดเปิดได้)
+    let currentBaseToppings = [...BASE_TOPPINGS];
+    if (selSize === 'พิเศษ') currentBaseToppings.push('เกี๊ยวปลา');
+
     const body = document.getElementById('modal-body');
     body.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
             <h2 style="color:var(--red);">${activeItem.name}</h2>
-            <button onclick="closeModal()" style="border:none; background:none; font-size:24px;">✖</button>
+            <button onclick="document.getElementById('item-modal').classList.remove('open')" style="border:none; background:none; font-size:24px;">✖</button>
         </div>
+        <div style="color:var(--red); font-size:20px; font-weight:bold; margin-bottom:15px;">รวม ฿${totalPrice}</div>
         
         <div class="opt-title">ขนาด</div>
         <div class="radio-grid">
-            <div class="radio-btn ${selSize.includes('ธรรมดา')?'active':''}" onclick="selSize='ธรรมดา (60.-)'; renderModal();">ธรรมดา 60.-</div>
-            <div class="radio-btn ${selSize.includes('พิเศษ')?'active':''}" onclick="selSize='พิเศษ (70.-)'; renderModal();">พิเศษ 70.-</div>
+            <div class="radio-btn ${selSize === 'ธรรมดา' ? 'active' : ''}" onclick="setSize('ธรรมดา')">ธรรมดา 60.-</div>
+            <div class="radio-btn ${selSize === 'พิเศษ' ? 'active' : ''}" onclick="setSize('พิเศษ')">พิเศษ 70.- <br><small style="font-weight:normal;">(ฟรี! เกี๊ยวปลา)</small></div>
         </div>
 
         <div class="opt-title">เลือกเส้น</div>
@@ -131,38 +204,59 @@ function renderModal() {
             ${NOODLES.map(n => `<div class="radio-btn ${selNoodle===n?'active':''}" onclick="selNoodle='${n}'; renderModal();">${n}</div>`).join('')}
         </div>
 
-        <div class="opt-title">เพิ่มเติม (ถ้ามี)</div>
-        <input type="text" id="note-input" class="input-note" placeholder="เช่น ไม่ผัก, กากหมูเยอะๆ">
+        <div class="opt-title">เครื่องมาตรฐาน (กดเพื่อเอาออก)</div>
+        <div class="radio-grid">
+            ${currentBaseToppings.map(item => `
+                <div class="radio-btn ${selBase.includes(item) ? 'active' : ''}" onclick="toggleBase('${item}')">
+                    ${selBase.includes(item) ? '✓' : '❌'} ${item}
+                </div>
+            `).join('')}
+        </div>
 
-        <button class="btn-confirm" onclick="addToCart()">เพิ่มลงตะกร้า</button>
+        <div class="opt-title">สั่งเพิ่มเครื่อง (+เงิน)</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+            ${EXTRAS.map(ex => `
+                <div class="radio-btn ${selExtra.includes(ex.id) ? 'active' : ''}" style="justify-content:space-between; padding:12px;" onclick="toggleExtra('${ex.id}')">
+                    <span>${selExtra.includes(ex.id) ? '✓ ' : ''}${ex.name}</span>
+                    <span class="extra-price">+฿${ex.price}</span>
+                </div>
+            `).join('')}
+        </div>
+
+        <div class="opt-title">หมายเหตุ (ถ้ามี)</div>
+        <input type="text" id="note-input" class="input-note" placeholder="เช่น รสจัด, ไม่กระเทียมเจียว">
+
+        <button class="btn-confirm" onclick="addToCart(${totalPrice})">เพิ่มลงตะกร้า (฿${totalPrice})</button>
     `;
 }
 
-function closeModal() { document.getElementById('item-modal').classList.remove('open'); }
-
-function addToCart() {
+function addToCart(totalPrice) {
     const note = document.getElementById('note-input').value;
-    const price = selSize.includes('พิเศษ') ? 70 : 60;
     
-    cart.push({
-        name: activeItem.name,
-        noodle: selNoodle,
-        size: selSize,
-        note: note,
-        price: price
+    // หาว่าลูกค้าไม่ใส่อะไรบ้าง เพื่อไปโชว์ในตะกร้า/ส่งให้แม่ค้า
+    let currentBase = [...BASE_TOPPINGS];
+    if (selSize === 'พิเศษ') currentBase.push('เกี๊ยวปลา');
+    let removedBase = currentBase.filter(t => !selBase.includes(t));
+    
+    // ดึงชื่อ Extra ที่เลือก
+    let selectedExtraNames = selExtra.map(id => EXTRAS.find(e => e.id === id).name);
+
+    cart.push({ 
+        name: activeItem.name, 
+        noodle: selNoodle, 
+        size: selSize, 
+        noBase: removedBase,
+        extras: selectedExtraNames,
+        note: note, 
+        price: totalPrice 
     });
     
-    closeModal();
-    updateCartIcon();
+    document.getElementById('item-modal').classList.remove('open');
+    document.getElementById('cart-count').innerText = cart.length;
     
-    // โชว์แจ้งเตือนว่าใส่ตะกร้าแล้ว
     const toast = document.getElementById("toast");
     toast.className = "toast show";
     setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
-}
-
-function updateCartIcon() {
-    document.getElementById('cart-count').innerText = cart.length;
 }
 
 function toggleCart() {
@@ -185,18 +279,23 @@ function renderCart() {
     let total = 0;
     cont.innerHTML = cart.map((c, i) => {
         total += c.price;
+        
+        let detailHtml = `<small style="color:#666;">เส้น: ${c.noodle}</small><br>`;
+        if(c.noBase.length > 0) detailHtml += `<small style="color:var(--red);">ไม่ใส่: ${c.noBase.join(', ')}</small><br>`;
+        if(c.extras.length > 0) detailHtml += `<small style="color:var(--gold); text-shadow: 0px 0px 1px #000;">เพิ่ม: ${c.extras.join(', ')}</small><br>`;
+        if(c.note) detailHtml += `<small style="color:#333;">*${c.note}</small>`;
+
         return `
         <div class="menu-card" style="align-items:center;">
             <div style="flex:1;">
                 <b>${c.name}</b> (${c.size})<br>
-                <small style="color:#666;">เส้น: ${c.noodle}</small><br>
-                ${c.note ? `<small style="color:var(--red);">*${c.note}</small>` : ''}
+                ${detailHtml}
             </div>
             <div style="font-weight:bold;">${c.price}.-</div>
-            <button onclick="cart.splice(${i},1); renderCart(); updateCartIcon();" style="border:none; background:none; color:red; padding:5px; font-weight:bold; font-size:16px;">X</button>
+            <button onclick="cart.splice(${i},1); renderCart(); document.getElementById('cart-count').innerText=cart.length;" style="border:none; background:none; color:red; padding:5px; font-weight:bold; font-size:16px;">X</button>
         </div>`;
     }).join('');
-    document.getElementById('cart-total').innerText = 'ยอดรวม: ' + total + '.-';
+    document.getElementById('cart-total').innerText = 'ยอดรวมสุทธิ: ฿' + total;
 }
 
 function submitOrder() {
@@ -204,22 +303,71 @@ function submitOrder() {
     if(!name) return alert('รบกวนใส่ชื่อ/โต๊ะ ให้แม่ค้าหน่อยจ้า');
     if(cart.length === 0) return;
 
-    // ระบบจำลองส่งข้อมูลผ่าน LocalStorage
+    const queueId = 'Q' + Math.floor(Math.random()*1000);
+    myQueueIds.push(queueId);
+
     let globalOrders = JSON.parse(localStorage.getItem('noodle_orders')) || [];
+    
+    // แปลงตะกร้าให้อยู่ในรูปแบบที่แสดงผลฝั่งแม่ค้าง่ายขึ้น
+    const processedCart = cart.map(c => {
+        let noteText = c.note ? `โน้ต: ${c.note}` : "";
+        let excludeText = c.noBase.length > 0 ? `[ไม่ใส่: ${c.noBase.join(', ')}]` : "";
+        let extraText = c.extras.length > 0 ? `[+เพิ่ม: ${c.extras.join(', ')}]` : "";
+        
+        return {
+            name: `${c.name} (${c.size})`,
+            noodle: c.noodle,
+            price: c.price,
+            note: `${excludeText} ${extraText} ${noteText}`.trim()
+        };
+    });
+
     globalOrders.push({
-        id: 'Q' + Math.floor(Math.random()*1000),
+        id: queueId,
         customer: name,
         time: new Date().toLocaleTimeString(),
-        items: [...cart],
+        items: processedCart,
         status: 'รอทำ'
     });
     localStorage.setItem('noodle_orders', JSON.stringify(globalOrders));
 
-    alert('ส่งออเดอร์ให้แม่ค้าเรียบร้อยแล้ว! รอรับความอร่อยได้เลยครับ');
+    alert('ส่งออเดอร์เรียบร้อย! สามารถกดดูสถานะคิวที่มุมซ้ายล่างได้เลยครับ');
     cart = [];
-    updateCartIcon();
+    document.getElementById('cart-count').innerText = 0;
+    document.getElementById('btn-status').style.display = 'block';
     toggleCart();
+    openStatus();
 }
+
+function openStatus() {
+    document.getElementById('status-modal').classList.add('open');
+    checkMyStatus();
+}
+
+function checkMyStatus() {
+    if(myQueueIds.length === 0) return;
+    const globalOrders = JSON.parse(localStorage.getItem('noodle_orders')) || [];
+    const myOrders = globalOrders.filter(o => myQueueIds.includes(o.id));
+    
+    const cont = document.getElementById('status-container');
+    cont.innerHTML = myOrders.reverse().map(o => {
+        const isDone = o.status === 'เสร็จแล้ว';
+        return `
+        <div style="border:1px solid #ddd; padding:15px; border-radius:10px; margin-bottom:10px; border-left: 5px solid ${isDone ? 'var(--green)' : 'var(--red)'};">
+            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                <b style="font-size:18px;">คิว ${o.id}</b>
+                <span style="color: ${isDone ? 'green' : 'var(--red)'}; font-weight:bold;">${o.status} ${isDone ? '✅' : '⏳'}</span>
+            </div>
+            <div style="font-size:14px; color:#666;">${o.items.length} รายการ</div>
+        </div>`;
+    }).join('');
+}
+
+setInterval(() => {
+    if(document.getElementById('status-modal').classList.contains('open')) {
+        checkMyStatus();
+    }
+}, 3000);
 
 initMenu();
 </script>
