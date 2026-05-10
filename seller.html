@@ -231,30 +231,25 @@ function card(o){
     </div>`;
   }).join("");
 
-  // slip section — seller can't see local slip, show placeholder if missing
   let slipSec="";
-  if(!o.slipVerified&&o.status!=="เสร็จแล้ว"){
-    if(o.slip&&o.slip!=="__local__"&&o.slip.length>10){
-      slipSec=`<div class="slip-sec">
-        <div class="slip-lbl">📸 สลิป — กดดูรูปขยาย</div>
-        <img class="slip-img" src="${o.slip}" onclick="viewSlip(this.src)">
-        ${o.status==="สลิปไม่ผ่าน"?'<div style="color:#e74c3c;font-size:12px;font-weight:700;margin:6px 0;">❌ ปฏิเสธแล้ว — ยืนยันใหม่?</div>':""}
-        <div class="slip-acts">
-          <button class="btn-ok2" onclick="verifySlip('${o._key}',true)">✅ ยืนยันโอนแล้ว</button>
-          <button class="btn-rej" onclick="verifySlip('${o._key}',false)">❌ ไม่ผ่าน</button>
-        </div>
-      </div>`;
-    } else {
-      slipSec=`<div class="slip-sec">
-        <div class="slip-lbl" style="color:#e67e22;">⚠️ ลูกค้าโอนจากเครื่องอื่น — ขอดูสลิปโดยตรง</div>
-        <div class="slip-acts">
-          <button class="btn-ok2" onclick="verifySlip('${o._key}',true)">✅ ยืนยันโอนแล้ว</button>
-          <button class="btn-rej" onclick="verifySlip('${o._key}',false)">❌ ไม่ผ่าน</button>
-        </div>
-      </div>`;
-    }
-  } else if(o.slipVerified){
+  if(o.slipVerified){
     slipSec=`<div class="slip-sec"><div class="v-ok">✅ ยืนยันการชำระเงินแล้ว</div></div>`;
+  } else if(o.status!=="เสร็จแล้ว"){
+    const hasSlip = o.slip && o.slip.length > 100 && o.slip.startsWith("data:");
+    const rejMsg  = o.status==="สลิปไม่ผ่าน"
+      ? '<div style="color:#e74c3c;font-size:12px;font-weight:700;margin:6px 0 4px;">❌ ปฏิเสธแล้ว — ยืนยันใหม่?</div>'
+      : "";
+    const slipImg = hasSlip
+      ? `<img class="slip-img" src="${o.slip}" onclick="viewSlip('${o._key}')"><br>`
+      : `<div style="background:#fff8e1;border-radius:8px;padding:10px;font-size:13px;color:#e67e22;margin-bottom:8px;">⏳ รอสลิปจากลูกค้า (กำลังโหลด...)</div>`;
+    slipSec=`<div class="slip-sec">
+      <div class="slip-lbl">📸 สลิปการโอนเงิน ${hasSlip?"— กดรูปเพื่อดูขยาย":""}</div>
+      ${rejMsg}${slipImg}
+      <div class="slip-acts">
+        <button class="btn-ok2" onclick="verifySlip('${o._key}',true)">✅ ยืนยันโอนแล้ว</button>
+        <button class="btn-rej" onclick="verifySlip('${o._key}',false)">❌ ไม่ผ่าน</button>
+      </div>
+    </div>`;
   }
 
   let footerBtn="";
@@ -302,7 +297,16 @@ async function clearDone(){
     await window._FB.remove(r);
   }
 }
-function viewSlip(src){
+function viewSlip(key){
+  // key อาจเป็น _key หรือ src โดยตรง
+  let src=key;
+  if(!key.startsWith("data:")){
+    const o=allOrders.find(x=>x._key===key||x.id===key);
+    if(o&&o.slip) src=o.slip;
+  }
+  if(!src||!src.startsWith("data:")){
+    showToast("⚠️ ไม่พบรูปสลิป"); return;
+  }
   document.getElementById("smodal-img").src=src;
   document.getElementById("smodal").classList.add("open");
 }
