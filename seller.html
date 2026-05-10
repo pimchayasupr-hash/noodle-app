@@ -249,9 +249,10 @@ function fbListen(){
 }
 
 function renderAll(){
-  const verify=allOrders.filter(o=>o.status==="รอตรวจสลิป"||o.status==="สลิปไม่ผ่าน").reverse();
-  const waiting=allOrders.filter(o=>o.status==="รอทำ").reverse();
-  const done=allOrders.filter(o=>o.status==="เสร็จแล้ว").reverse();
+  const byQueue=(a,b)=>(parseInt(a.id.replace("Q",""))||0)-(parseInt(b.id.replace("Q",""))||0);
+  const verify=allOrders.filter(o=>o.status==="รอตรวจสลิป"||o.status==="สลิปไม่ผ่าน").sort(byQueue);
+  const waiting=allOrders.filter(o=>o.status==="รอทำ").sort(byQueue);
+  const done=allOrders.filter(o=>o.status==="เสร็จแล้ว").sort(byQueue).reverse();
   const income=done.reduce((s,o)=>s+(o.total||0),0);
 
   document.getElementById("sv").innerText=verify.length;

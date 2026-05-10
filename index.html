@@ -573,7 +573,21 @@ async function submitOrder(){
   const btn=document.getElementById("btn-submit");
   btn.disabled=true;btn.innerText="⏳ กำลังส่ง...";
 
-  const qid="Q"+Math.floor(100+Math.random()*900);
+  // หาเลขคิวถัดไปจาก Firebase
+  let nextNum = 1;
+  try{
+    const snap = await new Promise((res,rej)=>{
+      window._FB.onValue(window._FB.oRef, res, {onlyOnce:true});
+    });
+    let maxNum = 0;
+    snap.forEach(child=>{
+      const id = child.val().id || "";
+      const num = parseInt(id.replace("Q","")) || 0;
+      if(num > maxNum) maxNum = num;
+    });
+    nextNum = maxNum + 1;
+  }catch(e){ nextNum = 1; }
+  const qid = "Q" + nextNum;
   myQids.push(qid);
   const order={
     id:qid, customer:name,
