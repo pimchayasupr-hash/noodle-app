@@ -351,11 +351,8 @@ function fbListen(cb){
 function initMenu(){
   document.getElementById("menu-ct").innerHTML=MENUS.map(m=>`
     <div class="menu-card">
-      <div class="mc-img" style="${m.isImg?'padding:0;':''}">
-        ${m.isImg
-          ? `<img src="${'${m.icon}'}" style="width:110px;height:110px;object-fit:cover;display:block;">`
-          : `${'${m.icon}'}`
-        }
+      <div class="mc-img" style="${m.isImg?'padding:0;overflow:hidden;':''}">
+        ${m.isImg ? '<img src="'+m.icon+'" style="width:110px;height:110px;object-fit:cover;display:block;">' : m.icon}
       </div>
       <div class="mc-body">
         <div class="mc-name">${m.name}</div><div class="mc-en">${m.en}</div>
