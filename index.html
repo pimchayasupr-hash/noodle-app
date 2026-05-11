@@ -347,22 +347,7 @@ function fbListen(cb){
 }
 
 /* ── menu ── */
-function initMenu(){ renderMenuWithSoldOut(); } function _initMenuOld(){
-  document.getElementById("menu-ct").innerHTML=MENUS.map(m=>`
-    <div class="menu-card">
-      <div class="mc-img" style="${m.isImg?'padding:0;overflow:hidden;':''}">
-        ${m.isImg ? '<img src="'+m.icon+'" style="width:110px;height:110px;object-fit:cover;display:block;">' : m.icon}
-      </div>
-      <div class="mc-body">
-        <div class="mc-name">${m.name}</div><div class="mc-en">${m.en}</div>
-        <div class="mc-desc">${m.desc}</div>
-        <div class="mc-foot">
-          <div class="ptag"><div class="pn">60.-</div><div class="ps">พิเศษ 70.-</div></div>
-          <button class="btn-add" onclick="openModal('${m.id}')">สั่ง +</button>
-        </div>
-      </div>
-    </div>`).join("");
-}
+function initMenu(){ window._soldOut={}; renderMenuWithSoldOut(); } 
 
 /* ── modal ── */
 function defTops(sz){
@@ -675,9 +660,7 @@ function listenSoldOut(){
   if(!window._FB){setTimeout(listenSoldOut,500);return;}
   const soRef=window._FB.ref(window._FB.db,"settings/soldOut");
   window._FB.onValue(soRef,snap=>{
-    const soldOut=snap.val()||{};
-    window._soldOut=soldOut;
-    // re-render เมนูให้แสดง sold out
+    window._soldOut=snap.val()||{};
     renderMenuWithSoldOut();
   });
 }
@@ -685,20 +668,19 @@ listenSoldOut();
 
 function renderMenuWithSoldOut(){
   const so=window._soldOut||{};
-  document.getElementById("menu-ct").innerHTML=MENUS.map(function(m){
+  const ct=document.getElementById("menu-ct");
+  if(!ct) return;
+  ct.innerHTML=MENUS.map(function(m){
     const isSoldOut=so[m.id]===true;
-    const imgHtml=m.isImg
-      ? '<img src="'+m.icon+'" style="width:110px;height:110px;object-fit:cover;display:block;">'
-      : m.icon;
+    const imgHtml='<img src="'+m.icon+'" style="width:110px;height:110px;object-fit:cover;display:block;">';
     const soldBadge=isSoldOut
-      ? '<div style="position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;"><span style="color:#fff;font-size:14px;font-weight:700;background:#e74c3c;padding:4px 10px;border-radius:20px;">หมดแล้ว</span></div>'
-      : '';
-    const soldLabel=isSoldOut ? ' <span style="color:#e74c3c;font-size:12px;">(หมดแล้ว)</span>' : '';
-    const btnAttr=isSoldOut ? 'disabled style="opacity:.4;cursor:not-allowed;"' : '';
+      ?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;"><span style="color:#fff;font-size:14px;font-weight:700;background:#e74c3c;padding:4px 10px;border-radius:20px;">หมดแล้ว</span></div>'
+      :'';
+    const soldLabel=isSoldOut?' <span style="color:#e74c3c;font-size:12px;">(หมดแล้ว)</span>':'';
+    const btnAttr=isSoldOut?'disabled style="opacity:.4;cursor:not-allowed;"':'';
     return '<div class="menu-card" style="'+(isSoldOut?'opacity:.55;':'')+'">'
       +'<div class="mc-img" style="padding:0;overflow:hidden;position:relative;">'
-      +imgHtml+soldBadge
-      +'</div>'
+      +imgHtml+soldBadge+'</div>'
       +'<div class="mc-body">'
       +'<div class="mc-name">'+m.name+soldLabel+'</div>'
       +'<div class="mc-en">'+m.en+'</div>'
