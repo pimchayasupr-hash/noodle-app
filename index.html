@@ -199,7 +199,7 @@ body{font-family:"Kanit",sans-serif;background:var(--bg);color:#333;max-width:48
   <div class="step-row"><div class="step dn">1</div><div class="sln dn"></div><div class="step act">2</div><div class="sln"></div><div class="step">3</div></div>
   <div class="qr-card">
     <div style="font-size:13px;color:#888;margin-bottom:10px;">📱 สแกน QR โอนผ่านแอปธนาคาร</div>
-    <img src="IMG_1605.jpg" class="qr" alt="QR">
+    <img src="IMG_1605.jpg" onerror="this.onerror=null; this.src='img/IMG_1605.jpg';" class="qr" alt="QR Code รับเงิน">
     <div class="qr-amt" id="pay-amt">฿0</div>
     <div class="qr-num">พร้อมเพย์ 098-596-9595</div>
     <div class="qr-name2">ฮุ้ง ก๋วยเตี๋ยวกากหมูต้มยำ</div>
@@ -234,9 +234,8 @@ body{font-family:"Kanit",sans-serif;background:var(--bg);color:#333;max-width:48
 
 
 <script type="module">
-import { initializeApp }            from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, push, onValue, update, remove, get }
-                                    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, push, onValue, update, remove, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const cfg = {
   apiKey: "AIzaSyAzFDduc4JpJlInNV2WNGRAcmproWfirLg",
