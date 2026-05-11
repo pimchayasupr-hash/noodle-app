@@ -153,7 +153,6 @@ body{font-family:"Kanit",sans-serif;background:var(--bg);color:#333;max-width:48
 </head>
 <body>
 
-<!-- HEADER -->
 <div class="hdr">
   <div class="hdr-inner">
     <div class="logo-c"><img src="img/logo.png" alt="logo"></div>
@@ -165,11 +164,10 @@ body{font-family:"Kanit",sans-serif;background:var(--bg);color:#333;max-width:48
   </div>
 </div>
 
-<!-- MENU -->
 <div id="scr-menu">
   <div id="closed-msg" class="closed-banner" style="display:none;">
     <h2>🔒 ปิดรับออเดอร์แล้ว</h2>
-    <p>ร้าน🟢 เปิดรับออเดอร์ได้เลย!<br>เจอกันพรุ่งนี้นะคะ 😊</p>
+    <p>ร้านเปิดรับออเดอร์แล้วค่ะ!<br>เชิญสั่งอาหารได้เลย 😊</p>
   </div>
   <div id="open-content">
     <div class="promo"><div style="font-size:32px;">🎉</div><div><b>ฟรี! กากหมูกรอบ ทุกชาม</b><span>ธรรมดา 60.- (เกี๊ยวปลา +10฿) | พิเศษ 70.- มีเกี๊ยวปลา</span></div></div>
@@ -178,7 +176,6 @@ body{font-family:"Kanit",sans-serif;background:var(--bg);color:#333;max-width:48
   </div>
 </div>
 
-<!-- CART -->
 <div id="scr-cart">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
     <button onclick="showScr('menu')" style="border:none;background:none;font-size:22px;cursor:pointer;color:#555;">←</button>
@@ -194,7 +191,6 @@ body{font-family:"Kanit",sans-serif;background:var(--bg);color:#333;max-width:48
   <button class="btn-sec" onclick="showScr('menu')">← เพิ่มเมนูอีก</button>
 </div>
 
-<!-- PAYMENT -->
 <div id="scr-pay">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
     <button onclick="showScr('cart')" style="border:none;background:none;font-size:22px;cursor:pointer;color:#555;">←</button>
@@ -219,13 +215,11 @@ body{font-family:"Kanit",sans-serif;background:var(--bg);color:#333;max-width:48
   <button class="btn-sec" onclick="showScr('cart')">← กลับแก้ตะกร้า</button>
 </div>
 
-<!-- STATUS -->
 <div id="scr-status">
   <h2 style="font-size:20px;font-weight:700;color:var(--brown);margin-bottom:16px;">🎫 สถานะออเดอร์ของฉัน</h2>
   <div id="status-ct"><div style="text-align:center;padding:30px;"><div class="spin"></div></div></div>
 </div>
 
-<!-- FLOATING -->
 <div class="fbar">
   <button class="cbtn" onclick="showScr('cart')">
     <div style="display:flex;align-items:center;gap:8px;"><span>🛒</span><span class="cbadge" id="cart-cnt">0 ชาม</span></div>
@@ -233,14 +227,12 @@ body{font-family:"Kanit",sans-serif;background:var(--bg);color:#333;max-width:48
   </button>
 </div>
 
-<!-- MODAL -->
 <div class="modal" id="item-modal" onclick="closeOut(event)">
   <div class="mc2" id="modal-bd"></div>
 </div>
 <div id="toast"></div>
 
 
-<!-- Firebase -->
 <script type="module">
 import { initializeApp }            from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, push, onValue, update, remove, get }
@@ -264,7 +256,6 @@ window._fbReady = true;
 window.dispatchEvent(new Event("fbReady"));
 </script>
 
-
 <script>
 const MENUS=[
   {id:"M3",name:"ก๋วยเตี๋ยวน้ำต้มยำ",en:"Tom Yum Soup Noodles",desc:"ต้มยำน้ำใส เปรี้ยวจี๊ดโดนใจ เผ็ดครบรส"},
@@ -279,6 +270,14 @@ const TOPS=[
   {id:"T5",n:"ตับต้ม",   ico:"🐷",def:true, extra:0},
   {id:"T6",n:"ลูกชิ้นปลาเยาวราช",ico:"⚪",def:true,extra:0},
   {id:"T7",n:"ลูกชิ้นกุ้ง",ico:"🦐",def:true,extra:0}
+];
+const NOODLES=[
+  {id:"N1",n:"เส้นเล็ก"},
+  {id:"N2",n:"เส้นใหญ่"},
+  {id:"N3",n:"เส้นหมี่ขาว"},
+  {id:"N4",n:"บะหมี่"},
+  {id:"N5",n:"วุ้นเส้น"},
+  {id:"N6",n:"มาม่า"}
 ];
 const HRS  = ["08","09","10","11","12","13","14"]; // 08-14 น. เท่านั้น
 const MINS = ["00","15","30","45"];
@@ -295,11 +294,9 @@ function isOpen(){
 }
 function checkOpen(){
   // Firebase listenShopStatus จัดการเปิด/ปิดแทนแล้ว
-  // ไม่ซ่อน open-content อีกต่อไป
 }
 
 /* ── firebase helpers ── */
-/* compress slip to <800KB for Firebase (max 10MB node limit) */
 function compressSlip(dataURL){
   return new Promise(res=>{
     const img=new Image();
@@ -311,7 +308,6 @@ function compressSlip(dataURL){
       c.width=w;c.height=h;
       c.getContext("2d").drawImage(img,0,0,w,h);
       const result=c.toDataURL("image/jpeg",0.5);
-      // safety check: if still > 800KB, compress more
       if(result.length>1100000){
         c.getContext("2d").drawImage(img,0,0,w,h);
         res(c.toDataURL("image/jpeg",0.3));
@@ -326,7 +322,6 @@ function fbPush(order){
   return new Promise(async(res,rej)=>{
     if(!window._FB) return rej("no fb");
     try{
-      // compress slip before pushing to Firebase
       let slip=order.slip||"";
       if(slip && slip.startsWith("data:")){
         slip = await compressSlip(slip);
@@ -343,7 +338,6 @@ function fbListen(cb){
     const all={};
     snap.forEach(child=>{
       const o=child.val(); o._key=child.key;
-      // slip stored directly in Firebase
       all[o.id]=o;
     });
     cb(all);
@@ -353,7 +347,6 @@ function fbListen(cb){
 /* ── menu ── */
 function initMenu(){
   window._soldOut={};
-  // แสดง open-content ทันที ก่อน Firebase
   const oc=document.getElementById("open-content");
   const cm=document.getElementById("closed-msg");
   if(oc) oc.style.display="block";
@@ -453,7 +446,6 @@ function buildPicker(){
   if(!hrEl||!mnEl) return;
   hrEl.innerHTML=HRS.map(h=>`<div class="tp-item ${h===sHr?"sel":""}" data-v="${h}">${h}</div>`).join("");
   mnEl.innerHTML=MINS.map(m=>`<div class="tp-item ${m===sMin?"sel":""}" data-v="${m}">${m}</div>`).join("");
-  // scroll to selected
   hrEl.scrollTop=HRS.indexOf(sHr)*52;
   mnEl.scrollTop=MINS.indexOf(sMin)*52;
 
@@ -466,15 +458,12 @@ function buildPicker(){
         const clamped=Math.max(0,Math.min(idx,arr.length-1));
         const v=arr[clamped];
         setter(v);
-        // snap
         el.scrollTo({top:clamped*52,behavior:"smooth"});
-        // update highlights
         el.querySelectorAll(".tp-item").forEach(i=>{
           i.classList.toggle("sel",i.dataset.v===v);
         });
         const d=document.getElementById("tdisp");
         if(d) d.innerText=sHr+":"+sMin+" น.";
-        // update add-to-cart button price
         const b=document.getElementById("btn-add-cart");
         if(b) b.innerText="🛒 เพิ่มลงตะกร้า — ฿"+calcPrice();
       },100);
@@ -567,7 +556,6 @@ async function submitOrder(){
   const btn=document.getElementById("btn-submit");
   btn.disabled=true;btn.innerText="⏳ กำลังส่ง...";
 
-  // หาเลขคิวถัดไปจาก Firebase
   let nextNum = 1;
   try{
     const snap = await new Promise((res,rej)=>{
@@ -614,7 +602,6 @@ async function submitOrder(){
 let prevSt={};
 function handleOrders(orders){
   fbOrders=orders;
-  // notify done
   Object.values(orders).filter(o=>myQids.includes(o.id)&&o.status==="เสร็จแล้ว"&&prevSt[o.id]!=="เสร็จแล้ว")
     .forEach(o=>{
       prevSt[o.id]=o.status;
@@ -651,17 +638,15 @@ function showToast(msg){const t=document.getElementById("toast");t.innerText=msg
 /* ── boot ── */
 initMenu(); showScr("menu");
 
-// ── ฟังสถานะร้านจาก Firebase realtime ──
 function listenShopStatus(){
   if(!window._FB){setTimeout(listenShopStatus,500);return;}
   const sRef=window._FB.ref(window._FB.db,"settings/isOpen");
   window._FB.onValue(sRef,snap=>{
-    // ถ้า Firebase ไม่มีค่า (null) → ถือว่าเปิดร้าน
     const val=snap.val();
     const shopOpen=(val===null||val===true);
     const closed=document.getElementById("closed-msg");
     const open=document.getElementById("open-content");
-    const fbar=document.getElementById("fbar");
+    const fbar=document.querySelector(".fbar");
     if(closed) closed.style.display=shopOpen?"none":"block";
     if(open)   open.style.display=shopOpen?"block":"none";
     if(fbar)   fbar.style.opacity=shopOpen?"1":"0.5";
@@ -669,7 +654,6 @@ function listenShopStatus(){
 }
 listenShopStatus();
 
-// ── ฟัง sold-out จาก Firebase ──
 function listenSoldOut(){
   if(!window._FB){setTimeout(listenSoldOut,500);return;}
   const soRef=window._FB.ref(window._FB.db,"settings/soldOut");
@@ -684,7 +668,6 @@ function renderMenuWithSoldOut(){
   const so=window._soldOut||{};
   const ct=document.getElementById("menu-ct");
   if(!ct) return;
-  const emojiMap={M3:"🌶️",M2:"🥘",M1:"🍜"};
   ct.innerHTML=MENUS.map(function(m){
     const isSoldOut=so[m.id]===true;
     const soldBadge=isSoldOut
@@ -701,7 +684,7 @@ function renderMenuWithSoldOut(){
       +'<div class="mc-desc">'+m.desc+'</div>'
       +'<div class="mc-foot">'
       +'<div class="ptag"><div class="pn">60.-</div><div class="ps">พิเศษ 70.-</div></div>'
-      +'<button class="btn-add" onclick="openModal(''+m.id+'')" '+btnAttr+'>สั่ง +</button>'
+      +'<button class="btn-add" onclick="openModal(\''+m.id+'\')" '+btnAttr+'>สั่ง +</button>'
       +'</div></div></div>';
   }).join("");
 }
