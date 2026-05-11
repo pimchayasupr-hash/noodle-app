@@ -281,7 +281,7 @@ function listenShopStatus(){
 }
 
 /* ── sold out ── */
-const MENU_NAMES={M1:"ก๋วยเตี๋ยวน้ำใส",M2:"ก๋วยเตี๋ยวแห้งต้มยำ",M3:"ก๋วยเตี๋ยวน้ำต้มยำ",M4:"มาม่าต้มยำ"};
+const MENU_NAMES={M1:"ก๋วยเตี๋ยวน้ำใส",M2:"ก๋วยเตี๋ยวแห้งต้มยำ",M3:"ก๋วยเตี๋ยวน้ำต้มยำ"};
 let soldOutState={};
 function renderSoldOutGrid(){
   const g=document.getElementById("so-grid"); if(!g) return;
@@ -369,7 +369,7 @@ function card(o){
     if(it.note) tags+=`<span class="tag t-nt">📝 ${it.note}</span>`;
     return `<div class="ir">
       <div class="ir-num">${i+1}</div>
-      <div class="ir-body"><div class="ir-name">${it.name||"-"}</div><div style="margin-top:4px;">${tags||'<span style="font-size:12px;color:#aaa;">มาตรฐาน</span>'}</div></div>
+      <div class="ir-body"><div class="ir-name">${it.emoji||'🍜'} ${it.name||"-"}</div><div style="margin-top:4px;">${tags||'<span style="font-size:12px;color:#aaa;">มาตรฐาน</span>'}</div></div>
       <div class="ir-p">฿${it.price||0}</div>
     </div>`;
   }).join("");
