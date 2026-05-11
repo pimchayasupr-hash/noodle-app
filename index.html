@@ -294,9 +294,8 @@ function isOpen(){
   return true; // เปิดตลอด
 }
 function checkOpen(){
-  const open=isOpen();
-  document.getElementById("closed-msg").style.display = open?"none":"block";
-  document.getElementById("open-content").style.display= open?"block":"none";
+  // Firebase listenShopStatus จัดการเปิด/ปิดแทนแล้ว
+  // ไม่ซ่อน open-content อีกต่อไป
 }
 
 /* ── firebase helpers ── */
@@ -352,7 +351,15 @@ function fbListen(cb){
 }
 
 /* ── menu ── */
-function initMenu(){ window._soldOut={}; renderMenuWithSoldOut(); } 
+function initMenu(){
+  window._soldOut={};
+  // แสดง open-content ทันที ก่อน Firebase
+  const oc=document.getElementById("open-content");
+  const cm=document.getElementById("closed-msg");
+  if(oc) oc.style.display="block";
+  if(cm) cm.style.display="none";
+  renderMenuWithSoldOut();
+} 
 
 /* ── modal ── */
 function defTops(sz){
@@ -649,13 +656,15 @@ function listenShopStatus(){
   if(!window._FB){setTimeout(listenShopStatus,500);return;}
   const sRef=window._FB.ref(window._FB.db,"settings/isOpen");
   window._FB.onValue(sRef,snap=>{
-    const isOpen=snap.val()!==false; // default เปิด
+    // ถ้า Firebase ไม่มีค่า (null) → ถือว่าเปิดร้าน
+    const val=snap.val();
+    const shopOpen=(val===null||val===true);
     const closed=document.getElementById("closed-msg");
     const open=document.getElementById("open-content");
     const fbar=document.getElementById("fbar");
-    if(closed) closed.style.display=isOpen?"none":"block";
-    if(open)   open.style.display=isOpen?"block":"none";
-    if(fbar)   fbar.style.opacity=isOpen?"1":"0.5";
+    if(closed) closed.style.display=shopOpen?"none":"block";
+    if(open)   open.style.display=shopOpen?"block":"none";
+    if(fbar)   fbar.style.opacity=shopOpen?"1":"0.5";
   });
 }
 listenShopStatus();
